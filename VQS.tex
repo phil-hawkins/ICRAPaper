@@ -1,0 +1,159 @@
+\documentclass[conference]{IEEEtran}
+    \IEEEoverridecommandlockouts
+    % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+    %\usepackage{cite}
+    \usepackage{amsmath,amssymb,amsfonts}
+    \usepackage{algorithmic}
+    \usepackage{graphicx}
+    \usepackage{textcomp}
+    \usepackage{xcolor}
+    \usepackage[colorinlistoftodos]{todonotes}
+    \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+        T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+        
+        
+    \usepackage[
+    backend=biber,
+    style=numeric,
+    sorting=ynt
+    ]{biblatex}
+ 
+    \addbibresource{mybibliography.bib}
+    \begin{document}
+    
+    \title{Visual Questioning with Spatially Grounded Segmentation Responses}
+    
+    \author{\IEEEauthorblockN{1\textsuperscript{st} Philip Hawkins}
+    \IEEEauthorblockA{\textit{Robotics and Autonomous Systems} \\
+    \textit{Queensland University of Technology}\\
+    Brisbane, Australia \\
+    pa.hawkins@hdr.qut.edu.au}
+    \and
+    \IEEEauthorblockN{2\textsuperscript{nd} Frederic Maire}
+    \IEEEauthorblockA{\textit{Robotics and Autonomous Systems} \\
+    \textit{Queensland University of Technology}\\
+    Brisbane, Australia \\
+    f.maire@qut.edu.au}
+    \and
+    \IEEEauthorblockN{3\textsuperscript{rd} Mahsa Baktashmotlagh}
+    \IEEEauthorblockA{\textit{Robotics and Autonomous Systems} \\
+    \textit{Queensland University of Technology}\\
+    Brisbane, Australia \\
+    m.baktashmotlagh@qut.edu.au}
+    }
+    
+    \maketitle
+    
+    \begin{abstract}
+Recent interest in visual question answering (VQA) has brought attention to multi-modal tasks that combine natural language processing with visual comprehension. In most cases these tasks have had limited application to robotics because they focus on identifying the visual attributes of individual scene elements rather than developing a broader capacity for spatial reasoning. The limitations in spatial reasoning development are inherent in some of the recent practices of machine learning such as reliance on large hand annotated photographic datasets and a tendency to focus on tasks that play to the strengths of convolutional neural networks (CNNs). In this work we extend recent developments in nueral network architecture to provide spatially grounded responses to visual questions.  Additionally we present a method for supervised training with the aid of synthetic dataset generation. 
+    \end{abstract}
+
+    \section{Introduction}
+If we consider the factors that currently make interaction between humans and robots different to those between humans, the fluency and scope of human verbal communication stands out.  Considerable progress has been made recently in network models for natural language processing particularly in sequence to sequence scenarios such as machine translation[ref?].  However, robots are usually intended to interact physically with their environment.  Therefore, for a robot's ability with language to be practical, it must be capable of comprehending spatial concepts that humans understand intuitively. 
+
+In this paper we approach the problem of developing spatial reasoning from two directions.  Firstly in comprehending natural language instructions that use spatial references to identify objects e.g. "Select the fork between the plate and the spoon" and secondly in providing a pixel-level shape mask of the selected object to enable a robot to precisely perceive the object's pose, supporting physical interaction such as object grasping. 
+
+Recently, there has been lively development in the area of captioning and visual question answering tasks \cite{RN67, RN82}. However, these tasks pay little if any attention to the spatial context of object with captioning and answering performed only on the visible attributes of the objects.  This is partly due to the current enthusiasm for convolutional neural networks which have a natural capability for translational invariance.  This location agnosticism, while helpful in many classification tasks, limits a CNNs ability to directly address spatial reasoning problems.  Our method uses a relational network \cite{RN1} in a novel way to spatially ground the scene entities. 
+
+Another factor that has limited the development of spatial reasoning with network models is the reliance on large datasets of hand annotated and segmented natural images for training\cite{RN73,RN93}.  Producing a dataset such as this is time consuming and expensive, and to our knowledge, none have been developed specifically to support spatial reasoning tasks. We address this issue by introducing a method for generating synthetic training data that can be tuned to the specific capabilities required of the network. 
+
+Selecting an architecture for a spatial language capability with a segmentation response presents a challenge.  While there are good methods for identifying instance segmentation masks \cite{RN62,RN91}, they are complex.  It may be possible to produce an end to end architecture that combines spatially grounded language processing with segmentation, however training it is likely to be difficult and the internal states inscrutable. 
+
+In our work we take a modular approach to this problem and separate the concern for spatial reasoning about instructions from that of object instance segmentation.  We apply interface abstraction to the modules. This affords the opportunity to swap out modules easily.  Thus, any improvements made in the segmentation module will be immediately available rather than requiring the downstream processing to be retrained.  The segmentation module could therefore be easily replaced by a different implementation or one trained on a different image dataset in order to apply the spatial capabilities to a different use case. 
+
+ 
+    \subsection{Contributions}
+
+\begin{enumerate}
+  \item To our knowledge, our work is the first to provide a pixel level mask of an object selected through  spatially grounded natural language. 
+
+  \item It has previously been suggested that relational networks could benefit from methods that exploit an awareness of scene structure as a method of bounding the quadratic complexity of pairwise relations \cite{RN1}.  Our use of classified and localised objects is a novel approach in achieving this.  
+
+  \item We propose a method of generating scene models, selection text and target results in order to provide supervised training data for instance segmentation and spatial natural language processing.  The query structure and scene content is dynamically configurable, making this method applicable to any task that can be defined in terms of symbolic predicates on a spatial model. 
+\end{enumerate}
+
+    \section{Related work}  
+
+    \subsection{VQA and VQS}
+
+Image captioning methods can efficiently generate text descriptions for entities in a scene\cite{RN96, RN60}.  More recently, there has been strong development in  visual question answering (VQA)\cite{RN67} leading on to visual questions with segmentation responses (VQS)\cite{RN80, RN78}.
+
+    \subsection{Synthetic dataset generation}
+
+In the development of VQA, issues of dataset balance have led to some deceptively positive results \cite{RN95}.  Unless the natural images used in the dataset are carefully selected, statistical biases in question and target content can lead to the systems learning to spot patterns in the questions that allow blind response without reference to the visual information\cite{RN68}.  As a result there have been a number of synthetic datasets developed as diagnostics to highlight the degree of scene comprehension that models develop \cite{RN68, RN1}. 
+
+In this work we took the use of synthetic data generation a step further.  We developed a dataset generation application VQSMock, the configuration of which directs the training of the model.  This allows us to select which spatial concepts to train and to ensure that we can tune the dataset to avoid perverse training outcomes like blind answering.   
+
+This method shares similarities with mock objects used in unit testing\cite{RN88}.  Training a network has some similarities to unit testing in that  training data is a proxy for the real world usage of the system.  As with unit testing, the network model is given a set of inputs and outputs.  The main difference is that in conventional software development, code is written to meet specification while in a network model, the test data and the target labels  directly shape the network responses through back propagation.  We found that as in unit testing, replacing the upstream process with a proxy or mock allowed us to focus on the spatial module without requiring a monolithic end-to-end setup.
+
+    \subsection{Relational networks}
+
+Relational networks (RNs) have been developed to address problems that require reasoning about the relations between entities\cite{RN1, RN38}.  In a relational network each entity is considered with respect to each other entity in a scene.  These networks have been used to augment CNNs with the ability to consider connections between separate receptive fields of the network.  There is a trade-off when using this approach as the number of relations to consider increases exponentially with the number of entities.  This can be reduced by pooling to give fewer cells with larger receptive fields however as the receptive fields become larger, small objects may be ignored due to pooling favouring other more distinct nearby objects.  Since our approach starts by identifying the objects in a scene through segmentation, we vastly reduce the number of entities considered without loss of precision.
+
+    \section{Task definition}
+
+In order to demonstrate fine discrimination of object spatially in a well understood setting we proposed the task of selecting household diner setting objects placed randomly on a table.  The hypothetical robot would be required to pick up an item based on a natural language instruction.  To focus our investigation on spatial comprehension we consider scenarios where classification alone is insufficient to identify an object and the query must therefore be given with reference to the object's location relative to the table or other objects on the table. 
+
+The vision system must indicate the correct selection through a binary mask showing the per-pixel location of the selected object in the image and a class label for the object. 
+
+    \section{Dataset generation}
+
+The dataset generator creates a model of each scene with objects placed in random locations and orientations.  From these scene models supervised training data is generated in batches. 
+
+Training data for fine tuning the segmentation stage is generated as a rendered image of the scene with training targets being the binary mask for each object in the image and a classification of each object.
+
+For the relational stage the training data is a text query and the classifications and bounding box for each scene object.  Training targets are index values representing the correct object indicated by the selection text. 
+
+Scene composition and question construction are governed by parameters of the generator. The configuration of the dataset therefore form a set of training hyperparameters that can be tuned to the requirements of the task.  Polygons are defined for each object type.  These are used rendering the object masks. 
+
+The text generation is configured with production rules that are recursively evaluated to construct an English language selection sentence and executed against the model to give the target selection. 
+
+    \section{Our model} 
+    
+Following the high level structure used in other relational networks\cite{RN1} our method uses three stages.   
+
+The first stage establishes the objects to be considered spatially and is performed by using an off the shelf segmentation model, MaskRCNN.  This selects the top N most distinct objects in the image and returns a pixel level segmentation mask, a bounding box and a classification for each object instance.  
+
+The second stage is the relational network proper. Each pairwise combination of objects and a vector encoding of the query sentence is fed to a shared weight MLP to form a representation of the spatial relationship of the two objects conditioned on the input query.  All combinations of different object instances are processed in this way.  The query embedding is produced by encoding the sentence words as glove.6b.300d vectors and feeding those to a GRU to encode the full sentence as a 256d vector.  Each object instance is encoded as a vector containing the flattened bounding box and classification features of that object.  The MLP is a four layer fully connected network each with 256 units with RELU activations. 
+
+The third stage concatenates the relational results with the query encoding and feeds to a MLP with fully connected layers of 1000 and then 256 units with RELU activations and a final layer with N units and a softmax activation.  The model was optimized using the Adam algorithm against a categorical cross-entropy loss function.  The output of the final layer is the probability distribution of each object being the one referred to by the query.  This index is then be used to select the segmentation mask of the selected object. 
+ 
+
+    \section{Experimental results}
+    
+    \subsection{Baseline models}
+    \begin{table}[htbp]
+        \caption{Comparison of results on spatial relationship identification}
+        \begin{center}
+        \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{Table}&\multicolumn{3}{|c|}{\textbf{Method}} \\
+        \cline{2-4} 
+        \textbf{Head} & \textbf{\textit{IoU}}& \textbf{\textit{Subhead}}& \textbf{\textit{Subhead}} \\
+        \hline
+        cool results here$^{\mathrm{a}}$& &  \\
+        \hline
+        \multicolumn{4}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
+        \end{tabular}
+        \label{tab1}
+        \end{center}
+        \end{table}
+
+    \subsection{Ablation tests}
+    \section{Conclusion}
+
+This paper demonstrated a method for combining relational networks with segmentation processes to empower a robot to respond to a spatial verbal instruction.  
+
+An interesting aspect of this work is that in developing a process for generating training data, we created an interface that could be used both in training on synthetic data and with the segmentation results from real world data.  This provided a capacity to focus training on spatial concepts with an arbitrarily large volume of data that was tuned to that task and later transfer the learning gained to images of real world objects.  We believe this method has a wide application in making supervised training possible for tasks that are not directly supported by existing datasets.
+
+Further research will investigate deriving the location representation for entities from the segmentation masks rather than the bounding boxes to give finer grained awareness of closely placed or overlapping objects. 
+
+Another avenue of investigation will be to extend the spatial reasoning capabilities to follow verbal placement instructions. This would involve consideration of issues such as pose projection, collision avoidance and spacing.
+
+
+    \printbibliography
+
+    \vspace{12pt}
+    
+    \end{document}
+    
